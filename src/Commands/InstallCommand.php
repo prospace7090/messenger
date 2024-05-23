@@ -3,6 +3,7 @@
 namespace RTippin\Messenger\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use RTippin\Messenger\Messenger;
 
@@ -78,25 +79,21 @@ class InstallCommand extends Command
     {
         $namespace = Str::replaceLast('\\', '', $this->laravel->getNamespace());
 
-        $appConfig = file_get_contents(config_path('app.php'));
+        if (file_exists($this->laravel->bootstrapPath('providers.php'))) {
+            ServiceProvider::addProviderToBootstrapFile("{$namespace}\\Providers\\MessengerServiceProvider");
+        } else {
+            $appConfig = file_get_contents(config_path('app.php'));
 
-        if (Str::contains($appConfig, $namespace.'\\Providers\\MessengerServiceProvider::class')) {
-            return;
+            if (Str::contains($appConfig, $namespace.'\\Providers\\MessengerServiceProvider::class')) {
+                return;
+            }
+
+            file_put_contents(config_path('app.php'), str_replace(
+                "{$namespace}\\Providers\EventServiceProvider::class,".PHP_EOL,
+                "{$namespace}\\Providers\EventServiceProvider::class,".PHP_EOL."        {$namespace}\Providers\MessengerServiceProvider::class,".PHP_EOL,
+                $appConfig
+            ));
         }
-
-        $lineEndingCount = [
-            "\r\n" => substr_count($appConfig, "\r\n"),
-            "\r" => substr_count($appConfig, "\r"),
-            "\n" => substr_count($appConfig, "\n"),
-        ];
-
-        $eol = array_keys($lineEndingCount, max($lineEndingCount))[0];
-
-        file_put_contents(config_path('app.php'), str_replace(
-            "{$namespace}\\Providers\EventServiceProvider::class,".$eol,
-            "{$namespace}\\Providers\EventServiceProvider::class,".$eol."        {$namespace}\Providers\MessengerServiceProvider::class,".$eol,
-            $appConfig
-        ));
 
         file_put_contents(app_path('Providers/MessengerServiceProvider.php'), str_replace(
             "namespace App\Providers;",

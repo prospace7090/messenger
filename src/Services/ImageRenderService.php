@@ -301,13 +301,9 @@ class ImageRenderService
                 ? $width = null
                 : $height = null;
 
-            $resize = $this->imageManager->cache(function ($image) use ($file, $width, $height) {
-                return $image->make($file)->resize($width, $height, function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-            }, 120);
-
-            return $this->imageManager->make($resize)->response();
+            return $this->imageManager->make($file)->resize($width, $height, function ($constraint) {
+                $constraint->aspectRatio();
+            })->response();
         } catch (Exception $e) {
             report($e);
         }

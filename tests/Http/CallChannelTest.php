@@ -15,6 +15,10 @@ class CallChannelTest extends HttpTestCase
 
         // Need to set a driver other than null
         // for broadcast routes to be utilized
+        $app->get('config')->set('broadcasting.connections.redis', [
+            'driver' => 'redis',
+            'connection' => 'default',
+        ]);
         $app->get('config')->set('broadcasting.default', 'redis');
     }
 

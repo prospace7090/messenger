@@ -12,6 +12,7 @@ use RTippin\Messenger\Http\Resources\InviteResource;
 use RTippin\Messenger\Messenger;
 use RTippin\Messenger\Models\Invite;
 use RTippin\Messenger\Models\Thread;
+use Throwable;
 
 class StoreInvite extends InviteAction
 {
@@ -93,7 +94,11 @@ class StoreInvite extends InviteAction
             return null;
         }
 
-        return Carbon::parse($expires);
+        try {
+            return Carbon::parse($expires);
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     /**
